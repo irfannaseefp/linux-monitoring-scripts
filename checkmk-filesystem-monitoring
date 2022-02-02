@@ -1,3 +1,19 @@
 ## Uses CheckMK Livestatus LQL query langauge to fetch all Filesystem services . Using AWK to filter out whose trend is >500Mb or <-200Mb.
 
 lq "GET services\nColumns: host_name\nColumns: display_name\nColumns: perf_data\nColumns: perf_data\nFilter: display_name ~ Filesystem.*" | awk 'BEGIN { FS=";" } {split($2,nam," ");split($19,arr,"="); if(arr[2] > 500 || arr[2] < -200) print $1 " --> " nam[2] " --> " arr[2]}'
+
+#Uses CheckMK Livestatus LQL query langauge to fetch all Interface errors
+lq "GET services\nColumns: host_name\nColumns: display_name\nColumns: perf_data\nFilter: display_name ~ Interface.*" | awk 'BEGIN { FS=";" } {split($2,nam," "); {for(i=1;i<=NF;i++) {if ($i ~ /err/) { split($i,arr,"="); if(arr[2] > 0) print $1 " --> Interface " nam[2] " --> Errors " arr[2]}}}}'
+
+#Uses CheckMK Livestatus LQL query langauge to fetch all Interface discards
+
+lq "GET services\nColumns: host_name\nColumns: display_name\nColumns: perf_data\nFilter: display_name ~ Interface.*" | awk 'BEGIN { FS=";" } {split($2,nam," "); {for(i=1;i<=NF;i++) {if ($i ~ /disc/) { split($i,arr,"="); if(arr[2] > 10) print $1 " --> Interface " nam[2] " --> " arr[1] " Discard " arr[2]}}}}'
+
+
+#Uses CheckMK Livestatus LQL query langauge to fetch all Interface bandwidth usage
+
+lq "GET services\nColumns: host_name\nColumns: display_name\nColumns: perf_data\nFilter: display_name ~ Interface.*" | awk 'BEGIN { FS=";" } {split($2,nam," "); {for(i=1;i<=NF;i++) {if ($i ~ /in=/ || $i ~ /out=/) { split($i,arr,"="); if(arr[2] > 100000000) print $1 " --> Interface " nam[2] " --> " arr[1] " Bandwidth " arr[2]}}}}'
+
+
+#Uses CheckMK Livestatus LQL query langauge to fetch all Multipath path actives
+lq "GET services\nColumns: host_name\nColumns: display_name\nColumns: plugin_output\nFilter: display_name ~ Multipath.*" | awk 'BEGIN { FS=";" } { if (match($3,/Paths active: [0-9]+\/[0-9]+/)) {pattern = substr($3,RSTART,RLENGTH); if (match(pattern,/[0-9]+\/[0-9]+/)){ pattern2 = substr(pattern,RSTART,RLENGTH); split(pattern2,arr,"/"); if(arr[1] != arr[2]) print $0 }} }'
