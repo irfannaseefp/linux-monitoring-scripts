@@ -1,0 +1,3 @@
+## Uses CheckMK Livestatus LQL query langauge to fetch all Filesystem services . Using AWK to filter out whose trend is >500Mb or <-200Mb.
+
+lq "GET services\nColumns: host_name\nColumns: display_name\nColumns: perf_data\nColumns: perf_data\nFilter: display_name ~ Filesystem.*" | awk 'BEGIN { FS=";" } {split($2,nam," ");split($19,arr,"="); if(arr[2] > 500 || arr[2] < -200) print $1 " --> " nam[2] " --> " arr[2]}'
